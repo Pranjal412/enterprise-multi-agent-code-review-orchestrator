@@ -81,6 +81,18 @@ async function main(): Promise<void> {
   // ------------------------------------------------------------
   const model = process.env.ANTHROPIC_MODEL?.trim();
 
+  const githubToken = process.env.GITHUB_TOKEN?.trim();
+
+  if (!githubToken) {
+    console.error(
+      'GITHUB_TOKEN is required for GitHub MCP integration.\n\n' +
+      'Create a GitHub personal access token with repository read access, then add it to your .env file:\n' +
+      '  GITHUB_TOKEN=ghp_your-token-here'
+    );
+    process.exitCode = 1;
+    return;
+  }
+
   if (!model) {
     console.error(
       'ANTHROPIC_MODEL is required.\n\n' +
@@ -148,22 +160,9 @@ async function main(): Promise<void> {
 
     await fs.mkdir(reportsDirectory, { recursive: true });
 
-    const baseName = `${owner}_${repo}_${prNumber}`;
-
-    const jsonPath = path.join(
-      reportsDirectory,
-      `${baseName}.json`
-    );
-
-    const markdownPath = path.join(
-      reportsDirectory,
-      `${baseName}.md`
-    );
-
-    const htmlPath = path.join(
-      reportsDirectory,
-      `${baseName}.html`
-    );
+    const jsonPath = path.join(reportsDirectory, 'report.json');
+    const markdownPath = path.join(reportsDirectory, 'report.md');
+    const htmlPath = path.join(reportsDirectory, 'report.html');
 
     await Promise.all([
       fs.writeFile(jsonPath, json, 'utf8'),
