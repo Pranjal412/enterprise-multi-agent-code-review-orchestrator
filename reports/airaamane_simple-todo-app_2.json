@@ -1,0 +1,438 @@
+{
+  "pullRequest": {
+    "owner": "airaamane",
+    "repo": "simple-todo-app",
+    "number": 2
+  },
+  "fileReviews": [
+    {
+      "file": "src/search.js",
+      "codeQuality": {
+        "file": "src/search.js",
+        "issues": [
+          {
+            "line": 4,
+            "severity": "high",
+            "category": "security",
+            "description": "Missing input validation - query parameter is not validated before use. If query is null, undefined, or not a string, the indexOf() call will throw a TypeError causing application crashes",
+            "suggestion": "Add input validation at function start: if (!query || typeof query !== 'string') { return []; }"
+          },
+          {
+            "line": 9,
+            "severity": "medium",
+            "category": "bug-risk",
+            "description": "Case-sensitive search using indexOf() may not meet user expectations. Searching for 'Buy' won't match 'buy milk'",
+            "suggestion": "Convert both strings to lowercase for case-insensitive search: todo.text.toLowerCase().indexOf(query.toLowerCase()) !== -1"
+          },
+          {
+            "line": 5,
+            "severity": "low",
+            "category": "style",
+            "description": "Using var instead of const/let is outdated ES5 syntax with function-scoping issues",
+            "suggestion": "Replace var with const for immutable values and let for loop variables"
+          },
+          {
+            "line": 7,
+            "severity": "medium",
+            "category": "performance",
+            "description": "Using traditional for-loops instead of modern array methods makes code less readable and potentially less performant",
+            "suggestion": "Use filter() method: return listTodos().filter(todo => todo.text.includes(query));"
+          },
+          {
+            "line": 9,
+            "severity": "low",
+            "category": "style",
+            "description": "Using indexOf() is older syntax. Modern JavaScript uses includes() which is more readable",
+            "suggestion": "Replace indexOf(query) !== -1 with includes(query)"
+          },
+          {
+            "line": 5,
+            "severity": "medium",
+            "category": "maintainability",
+            "description": "Code duplication between searchTodos and searchTodosByStatus functions. Changes to search behavior require updates in multiple places",
+            "suggestion": "Refactor to reuse base search: export function searchTodosByStatus(query, done) { return searchTodos(query).filter(todo => todo.done === done); }"
+          },
+          {
+            "line": 4,
+            "severity": "low",
+            "category": "maintainability",
+            "description": "Functions lack JSDoc documentation describing parameters, return values, and behavior",
+            "suggestion": "Add JSDoc comments with @param and @returns tags"
+          },
+          {
+            "line": 17,
+            "severity": "high",
+            "category": "bug-risk",
+            "description": "The done parameter uses strict equality (===) with boolean but no validation ensures it's actually a boolean. Non-boolean values will cause silent failures",
+            "suggestion": "Add type validation: if (typeof done !== 'boolean') { throw new TypeError('done must be a boolean'); }"
+          }
+        ],
+        "overallScore": 52,
+        "summary": "The new search functionality introduces critical security vulnerabilities due to missing input validation that could cause application crashes. The code uses outdated JavaScript patterns (var, indexOf, traditional for-loops) and lacks proper error handling. Code duplication between the two search functions creates maintainability issues. Priority actions: add input validation, implement modern JavaScript patterns, and eliminate code duplication."
+      },
+      "testCoverage": {
+        "file": "src/search.js",
+        "hasTests": false,
+        "testFiles": [],
+        "untestedPaths": [
+          {
+            "type": "function",
+            "location": "searchTodos(query) - lines 4-13",
+            "priority": "high",
+            "reasoning": "Core search functionality exposed via API endpoint. No tests verify basic search behavior, empty results, or case sensitivity",
+            "suggestedTest": "describe('searchTodos', () => { it('should return todos matching the query substring', () => { const results = searchTodos('meeting'); expect(results[0].text).toContain('meeting'); }); });"
+          },
+          {
+            "type": "edge-case",
+            "location": "searchTodos(query) - empty query handling",
+            "priority": "critical",
+            "reasoning": "No validation for empty or null query parameter. Could cause unexpected behavior or return all todos, leading to performance issues",
+            "suggestedTest": "describe('searchTodos edge cases', () => { it('should handle empty query string', () => { const results = searchTodos(''); expect(results).toBeDefined(); }); it('should handle null or undefined query', () => { expect(() => searchTodos(null)).not.toThrow(); }); });"
+          },
+          {
+            "type": "edge-case",
+            "location": "searchTodos(query) - case sensitivity",
+            "priority": "high",
+            "reasoning": "indexOf is case-sensitive. Users may expect case-insensitive search. No test verifies the intended behavior",
+            "suggestedTest": "describe('searchTodos case sensitivity', () => { it('should perform case-sensitive search', () => { const upper = searchTodos('Milk'); const lower = searchTodos('milk'); expect(upper).toHaveLength(1); expect(lower).toHaveLength(0); }); });"
+          },
+          {
+            "type": "edge-case",
+            "location": "searchTodos(query) - special characters in query",
+            "priority": "medium",
+            "reasoning": "No tests verify behavior with special characters, regex metacharacters, or Unicode",
+            "suggestedTest": "describe('searchTodos special characters', () => { it('should handle special characters in query', () => { const results = searchTodos('\\\"quoted\\\"'); expect(results).toBeDefined(); }); });"
+          },
+          {
+            "type": "function",
+            "location": "searchTodosByStatus(query, done) - lines 15-27",
+            "priority": "high",
+            "reasoning": "Complex function with two parameters. No tests verify status filtering logic or interaction between text search and status filter",
+            "suggestedTest": "describe('searchTodosByStatus', () => { it('should return only completed todos matching query', () => { const results = searchTodosByStatus('buy', true); expect(results[0].done).toBe(true); }); });"
+          },
+          {
+            "type": "edge-case",
+            "location": "searchTodosByStatus(query, done) - boolean parameter edge cases",
+            "priority": "high",
+            "reasoning": "The done parameter uses strict equality with boolean. No tests verify behavior with truthy/falsy values",
+            "suggestedTest": "describe('searchTodosByStatus boolean handling', () => { it('should require strict boolean true', () => { const strict = searchTodosByStatus('test', true); const truthy = searchTodosByStatus('test', 1); }); });"
+          },
+          {
+            "type": "branch",
+            "location": "searchTodosByStatus(query, done) - nested if conditions",
+            "priority": "medium",
+            "reasoning": "Function has nested conditionals. No tests verify that BOTH conditions must be true for branch coverage",
+            "suggestedTest": "describe('searchTodosByStatus branch coverage', () => { it('should not return todos with matching text but wrong status', () => { const results = searchTodosByStatus('match', true); expect(results.every(t => t.done === true)).toBe(true); }); });"
+          }
+        ],
+        "coverageEstimate": 0,
+        "summary": "src/search.js has ZERO test coverage. Both exported functions are completely untested. Critical gaps include: no validation of edge cases (empty/null queries), no verification of case-sensitive search behavior, no testing of boolean parameter handling. Priority: Create tests/search.test.js with minimum 15-20 test cases covering happy paths, edge cases, and error conditions."
+      },
+      "refactorings": {
+        "file": "src/search.js",
+        "suggestions": [
+          {
+            "type": "modernize",
+            "location": "Lines 5-12 (all variable declarations)",
+            "impact": "medium",
+            "description": "Replace outdated var declarations with const and let for better scoping, immutability, and modern JavaScript practices",
+            "before": "var results = [];\nvar all = listTodos();\nfor (var i = 0; i < all.length; i++) {\n  var todo = all[i];",
+            "after": "const results = [];\nconst all = listTodos();\nfor (let i = 0; i < all.length; i++) {\n  const todo = all[i];",
+            "benefits": "Block scoping prevents variable leakage, const makes immutability explicit reducing bugs, aligns with modern JavaScript best practices"
+          },
+          {
+            "type": "modernize",
+            "location": "Lines 4-13 (searchTodos function body)",
+            "impact": "high",
+            "description": "Replace imperative for-loops with functional array methods (filter) for more declarative, readable code",
+            "before": "export function searchTodos(query) {\n  var results = [];\n  var all = listTodos();\n  for (var i = 0; i < all.length; i++) {\n    var todo = all[i];\n    if (todo.text.indexOf(query) !== -1) {\n      results.push(todo);\n    }\n  }\n  return results;\n}",
+            "after": "export function searchTodos(query) {\n  return listTodos().filter(todo => todo.text.indexOf(query) !== -1);\n}",
+            "benefits": "Reduces code from 8 lines to 1 line, eliminates mutable state, more declarative and easier to understand, less prone to errors"
+          },
+          {
+            "type": "modernize",
+            "location": "Lines 9, 21 (indexOf calls)",
+            "impact": "low",
+            "description": "Replace indexOf with modern includes() method for better readability when checking string presence",
+            "before": "if (todo.text.indexOf(query) !== -1) {",
+            "after": "if (todo.text.includes(query)) {",
+            "benefits": "More expressive intent, reduces cognitive load, modern JavaScript standard (ES2015+), improves readability"
+          },
+          {
+            "type": "extract-function",
+            "location": "Lines 4-13 and 15-27 (both search functions)",
+            "impact": "high",
+            "description": "Extract common text-matching logic to eliminate code duplication between searchTodos and searchTodosByStatus",
+            "before": "export function searchTodos(query) {\n  var results = [];\n  var all = listTodos();\n  for (var i = 0; i < all.length; i++) {\n    var todo = all[i];\n    if (todo.text.indexOf(query) !== -1) {\n      results.push(todo);\n    }\n  }\n  return results;\n}\n\nexport function searchTodosByStatus(query, done) {\n  var results = [];\n  var all = listTodos();\n  for (var i = 0; i < all.length; i++) {\n    var todo = all[i];\n    if (todo.text.indexOf(query) !== -1) {\n      if (todo.done === done) {\n        results.push(todo);\n      }\n    }\n  }\n  return results;\n}",
+            "after": "export function searchTodos(query) {\n  return listTodos().filter(todo => todo.text.includes(query));\n}\n\nexport function searchTodosByStatus(query, done) {\n  return searchTodos(query).filter(todo => todo.done === done);\n}",
+            "benefits": "Eliminates code duplication (DRY principle), single source of truth for search matching, easier to modify search behavior, improved testability"
+          },
+          {
+            "type": "simplify",
+            "location": "Lines 15-27 (searchTodosByStatus function)",
+            "impact": "medium",
+            "description": "Simplify the nested conditional logic by combining filter conditions with logical AND operator",
+            "before": "export function searchTodosByStatus(query, done) {\n  var results = [];\n  var all = listTodos();\n  for (var i = 0; i < all.length; i++) {\n    var todo = all[i];\n    if (todo.text.indexOf(query) !== -1) {\n      if (todo.done === done) {\n        results.push(todo);\n      }\n    }\n  }\n  return results;\n}",
+            "after": "export function searchTodosByStatus(query, done) {\n  return listTodos().filter(todo => \n    todo.text.includes(query) && todo.done === done\n  );\n}",
+            "benefits": "Reduces nesting depth from 3 levels to 1, improves readability, eliminates temporary variables, reduces cognitive complexity"
+          }
+        ],
+        "summary": "src/search.js has 5 major refactoring opportunities focusing on modernizing from ES5 to ES6+ syntax (var to const/let, for-loops to filter, indexOf to includes), eliminating code duplication between the two search functions, and reducing complexity through functional programming patterns. The most critical refactorings are modernizing with filter methods and extracting duplicate search logic."
+      }
+    },
+    {
+      "file": "src/server.js",
+      "codeQuality": {
+        "file": "src/server.js",
+        "issues": [
+          {
+            "line": 15,
+            "severity": "critical",
+            "category": "security",
+            "description": "Missing input validation on query parameter - req.query.q is passed directly to searchTodos() without validation. If query parameter is missing, undefined will be passed causing application crash",
+            "suggestion": "Add validation before calling searchTodos: if (!query || typeof query !== 'string') { return res.status(400).json({ error: 'Query parameter \"q\" is required' }); }"
+          },
+          {
+            "line": 15,
+            "severity": "medium",
+            "category": "security",
+            "description": "No query parameter sanitization - no length limit on query parameter. Extremely long queries could cause performance issues or DoS attacks",
+            "suggestion": "Add length validation: if (query.length > 1000) { return res.status(400).json({ error: 'Query too long' }); }"
+          },
+          {
+            "line": 15,
+            "severity": "high",
+            "category": "bug-risk",
+            "description": "Missing error handling - if searchTodos() throws an error, it will crash the server. No try-catch block or error handling middleware",
+            "suggestion": "Add try-catch: try { res.json(searchTodos(query)); } catch (error) { console.error('Search error:', error); res.status(500).json({ error: 'Internal server error' }); }"
+          },
+          {
+            "line": 15,
+            "severity": "medium",
+            "category": "performance",
+            "description": "Potential performance issue with large datasets - search endpoint returns all matching results without pagination. Could cause memory and performance issues",
+            "suggestion": "Implement pagination with limit and offset query parameters"
+          },
+          {
+            "line": 14,
+            "severity": "medium",
+            "category": "security",
+            "description": "Missing rate limiting - search endpoints are often targets for abuse. No rate limiting is implemented, allowing unlimited search requests",
+            "suggestion": "Implement rate limiting middleware using express-rate-limit"
+          },
+          {
+            "line": 14,
+            "severity": "low",
+            "category": "maintainability",
+            "description": "No request logging - search requests aren't logged, making debugging and monitoring difficult",
+            "suggestion": "Add logging middleware or log search queries for analytics"
+          }
+        ],
+        "overallScore": 48,
+        "summary": "The new /todos/search endpoint introduces critical security vulnerabilities due to missing input validation that could cause application crashes. No error handling means exceptions will crash the server. Missing rate limiting and pagination could lead to performance issues and abuse. Priority actions: add input validation, implement error handling, and add rate limiting."
+      },
+      "testCoverage": {
+        "file": "src/server.js",
+        "hasTests": false,
+        "testFiles": [],
+        "untestedPaths": [
+          {
+            "type": "function",
+            "location": "GET /todos/search endpoint - lines 14-16",
+            "priority": "critical",
+            "reasoning": "New API endpoint with no integration tests. No verification that endpoint exists, accepts query parameters, returns proper JSON, or handles missing query parameter",
+            "suggestedTest": "describe('GET /todos/search', () => { it('should return search results as JSON', async () => { const response = await request(app).get('/todos/search?q=meeting').expect('Content-Type', /json/).expect(200); expect(Array.isArray(response.body)).toBe(true); }); });"
+          },
+          {
+            "type": "edge-case",
+            "location": "GET /todos/search - missing query parameter",
+            "priority": "critical",
+            "reasoning": "No validation for missing q query parameter. req.query.q will be undefined if not provided, passing undefined to searchTodos() causing errors",
+            "suggestedTest": "describe('GET /todos/search missing parameters', () => { it('should handle missing q parameter gracefully', async () => { const response = await request(app).get('/todos/search').expect(400); expect(response.body.error).toBeDefined(); }); });"
+          },
+          {
+            "type": "edge-case",
+            "location": "GET /todos/search - empty query parameter",
+            "priority": "high",
+            "reasoning": "No test for empty query string (?q= or ?q=''). Different from missing parameter and could have different behavior",
+            "suggestedTest": "describe('GET /todos/search empty query', () => { it('should handle empty query string', async () => { const response = await request(app).get('/todos/search?q=').expect(200); expect(response.body).toBeDefined(); }); });"
+          },
+          {
+            "type": "edge-case",
+            "location": "GET /todos/search - special characters in query",
+            "priority": "medium",
+            "reasoning": "No test verifies URL encoding/decoding of special characters in query parameter",
+            "suggestedTest": "describe('GET /todos/search URL encoding', () => { it('should handle URL-encoded special characters', async () => { const response = await request(app).get('/todos/search?q=' + encodeURIComponent('test & special')).expect(200); }); });"
+          },
+          {
+            "type": "edge-case",
+            "location": "GET /todos/search - error handling",
+            "priority": "medium",
+            "reasoning": "No test verifies behavior if searchTodos() throws an error. The endpoint lacks error handling",
+            "suggestedTest": "describe('GET /todos/search error handling', () => { it('should handle searchTodos errors gracefully', async () => { expect(true).toBe(true); }); });"
+          },
+          {
+            "type": "function",
+            "location": "GET /todos/search - integration with searchTodos",
+            "priority": "high",
+            "reasoning": "No test verifies the endpoint correctly passes query parameter to searchTodos() and returns its results",
+            "suggestedTest": "describe('GET /todos/search integration', () => { it('should pass query parameter to searchTodos', async () => { const response = await request(app).get('/todos/search?q=specific').expect(200); response.body.forEach(todo => { expect(todo.text).toContain('specific'); }); }); });"
+          }
+        ],
+        "coverageEstimate": 0,
+        "summary": "The new GET /todos/search endpoint has ZERO test coverage. No integration tests verify the endpoint works, handles edge cases, or fails gracefully. Critical gaps: no validation that endpoint accepts and processes query parameters correctly, no testing of missing/empty parameters, no error handling tests. Priority: Add tests to tests/server.test.js with minimum 10-12 integration test cases."
+      },
+      "refactorings": {
+        "file": "src/server.js",
+        "suggestions": [
+          {
+            "type": "extract-function",
+            "location": "Lines 10-16, 18-24, 26-30, 32-36 (route handlers)",
+            "impact": "high",
+            "description": "Extract inline route handlers into named functions to improve testability, reusability, and code organization",
+            "before": "app.get('/todos', (req, res) => {\n  res.json(listTodos());\n});\n\napp.get('/todos/search', (req, res) => {\n  res.json(searchTodos(req.query.q));\n});",
+            "after": "function handleGetTodos(req, res) {\n  res.json(listTodos());\n}\n\nfunction handleSearchTodos(req, res) {\n  res.json(searchTodos(req.query.q));\n}\n\napp.get('/todos', handleGetTodos);\napp.get('/todos/search', handleSearchTodos);",
+            "benefits": "Handlers can be unit tested independently, improves code organization, named functions improve stack traces, easier to reuse handlers"
+          },
+          {
+            "type": "pattern-improvement",
+            "location": "Lines 14-16 (search endpoint)",
+            "impact": "medium",
+            "description": "Add validation for the search query parameter to prevent errors when query is missing or invalid",
+            "before": "app.get('/todos/search', (req, res) => {\n  res.json(searchTodos(req.query.q));\n});",
+            "after": "app.get('/todos/search', (req, res) => {\n  const query = req.query.q;\n  \n  if (!query || typeof query !== 'string') {\n    return res.status(400).json({ \n      error: 'Search query parameter \"q\" is required and must be a string' \n    });\n  }\n  \n  res.json(searchTodos(query));\n});",
+            "benefits": "Prevents runtime errors when query is undefined, provides clear error messages, consistent error handling, improves API robustness"
+          },
+          {
+            "type": "extract-function",
+            "location": "Lines 27, 33 (Number(req.params.id) calls)",
+            "impact": "low",
+            "description": "Extract repeated ID parsing and validation logic into a reusable helper function",
+            "before": "app.patch('/todos/:id/toggle', (req, res) => {\n  const todo = toggleTodo(Number(req.params.id));\n  if (!todo) return res.status(404).json({ error: 'not found' });\n  res.json(todo);\n});",
+            "after": "function parseIdParam(req) {\n  const id = Number(req.params.id);\n  return Number.isInteger(id) && id > 0 ? id : null;\n}\n\napp.patch('/todos/:id/toggle', (req, res) => {\n  const id = parseIdParam(req);\n  if (!id) {\n    return res.status(400).json({ error: 'Invalid todo ID' });\n  }\n  const todo = toggleTodo(id);\n  if (!todo) return res.status(404).json({ error: 'not found' });\n  res.json(todo);\n});",
+            "benefits": "Eliminates code duplication, adds validation for invalid IDs, distinguishes between invalid ID (400) and not found (404)"
+          },
+          {
+            "type": "pattern-improvement",
+            "location": "Lines 22, 28, 34 (error responses)",
+            "impact": "low",
+            "description": "Create a consistent error response structure across all endpoints for better API consistency",
+            "before": "if (!validation.valid) {\n  return res.status(400).json({ error: validation.error });\n}\n// ...\nif (!todo) return res.status(404).json({ error: 'not found' });",
+            "after": "function errorResponse(res, statusCode, message) {\n  return res.status(statusCode).json({ \n    error: message,\n    status: statusCode,\n    timestamp: new Date().toISOString()\n  });\n}\n\nif (!validation.valid) {\n  return errorResponse(res, 400, validation.error);\n}\nif (!todo) {\n  return errorResponse(res, 404, 'Todo not found');\n}",
+            "benefits": "Consistent error response format across API, easier to add metadata, single place to modify error structure"
+          },
+          {
+            "type": "extract-function",
+            "location": "Line 38 (PORT constant)",
+            "impact": "low",
+            "description": "Extract configuration values to a dedicated configuration section for better maintainability",
+            "before": "const PORT = process.env.PORT || 3000;\napp.listen(PORT, () => {\n  console.log(`todo-app-review-fixture listening on port ${PORT}`);\n});",
+            "after": "const CONFIG = {\n  PORT: process.env.PORT || 3000,\n  APP_NAME: 'todo-app-review-fixture'\n};\n\napp.listen(CONFIG.PORT, () => {\n  console.log(`${CONFIG.APP_NAME} listening on port ${CONFIG.PORT}`);\n});",
+            "benefits": "Centralizes configuration, makes configurable values explicit, easier to add more configuration options"
+          }
+        ],
+        "summary": "src/server.js has 5 refactoring opportunities focusing on improving testability by extracting route handlers, enhancing error handling and input validation, reducing duplication in ID parsing logic, standardizing error response formats, and better configuration management. Most critical refactorings are extracting route handlers for testability and adding input validation for the search endpoint."
+      }
+    }
+  ],
+  "summary": {
+    "totalFiles": 2,
+    "overallScore": 50,
+    "criticalIssues": 3,
+    "highPriorityTests": 8,
+    "refactoringOpportunities": 10
+  },
+  "recommendations": [
+    {
+      "priority": "critical",
+      "category": "Security & Stability",
+      "description": "Add input validation to prevent application crashes. Both src/search.js and src/server.js lack validation for null/undefined/invalid query parameters, which will cause TypeError exceptions and crash the application.",
+      "files": [
+        "src/search.js",
+        "src/server.js"
+      ]
+    },
+    {
+      "priority": "critical",
+      "category": "Test Coverage",
+      "description": "Add comprehensive test coverage for new search functionality. Currently 0% test coverage for both src/search.js and the new /todos/search endpoint. Create tests/search.test.js and add integration tests to verify functionality and prevent regressions.",
+      "files": [
+        "src/search.js",
+        "src/server.js"
+      ]
+    },
+    {
+      "priority": "high",
+      "category": "Error Handling",
+      "description": "Implement error handling in the /todos/search endpoint. Add try-catch blocks to prevent unhandled exceptions from crashing the server. Return appropriate HTTP status codes (400 for validation errors, 500 for server errors).",
+      "files": [
+        "src/server.js"
+      ]
+    },
+    {
+      "priority": "high",
+      "category": "Code Modernization",
+      "description": "Refactor search functions to use modern JavaScript (ES6+). Replace var with const/let, use filter() instead of for-loops, and use includes() instead of indexOf(). This will improve readability, maintainability, and reduce bug risk.",
+      "files": [
+        "src/search.js"
+      ]
+    },
+    {
+      "priority": "high",
+      "category": "Code Quality",
+      "description": "Eliminate code duplication in search.js. The searchTodos and searchTodosByStatus functions contain duplicate search logic. Refactor searchTodosByStatus to call searchTodos to follow DRY principle.",
+      "files": [
+        "src/search.js"
+      ]
+    },
+    {
+      "priority": "medium",
+      "category": "User Experience",
+      "description": "Implement case-insensitive search. Current implementation uses indexOf() which is case-sensitive, likely not matching user expectations. Convert both query and todo text to lowercase before comparison.",
+      "files": [
+        "src/search.js"
+      ]
+    },
+    {
+      "priority": "medium",
+      "category": "Security",
+      "description": "Add rate limiting to the /todos/search endpoint. Search endpoints are common targets for abuse. Implement rate limiting middleware (e.g., express-rate-limit) to prevent DoS attacks.",
+      "files": [
+        "src/server.js"
+      ]
+    },
+    {
+      "priority": "medium",
+      "category": "Performance",
+      "description": "Consider adding pagination to search results. Without pagination, large result sets could cause memory and performance issues. Add limit and offset query parameters to control result size.",
+      "files": [
+        "src/server.js"
+      ]
+    },
+    {
+      "priority": "low",
+      "category": "Maintainability",
+      "description": "Extract route handlers into named functions. This will improve testability, code organization, and make debugging easier with better stack traces.",
+      "files": [
+        "src/server.js"
+      ]
+    },
+    {
+      "priority": "low",
+      "category": "Documentation",
+      "description": "Add JSDoc documentation to search functions. Document parameters, return values, and expected behavior to improve code maintainability and developer experience.",
+      "files": [
+        "src/search.js"
+      ]
+    }
+  ],
+  "metadata": {
+    "analyzedAt": "2026-09-24T00:00:00.000Z",
+    "duration": 45000,
+    "agentVersions": {
+      "code-quality-analyzer": "a321eb7",
+      "test-coverage-analyzer": "ad93242",
+      "refactoring-suggester": "a1cb9f1"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "pullRequest": {
+    "owner": "airaamane",
+    "repo": "simple-todo-app",
+    "number": 4
+  },
+  "fileReviews": [],
+  "summary": {
+    "totalFiles": 0,
+    "overallScore": 0,
+    "criticalIssues": 0,
+    "highPriorityTests": 0,
+    "refactoringOpportunities": 0
+  },
+  "recommendations": [
+    {
+      "priority": "critical",
+      "category": "accessibility",
+      "description": "Pull request #4 does not exist in repository airaamane/simple-todo-app. The repository is not accessible via GitHub API (404 Not Found). Unable to perform code quality analysis, test coverage analysis, or refactoring suggestions without access to the pull request data.",
+      "files": []
+    }
+  ],
+  "metadata": {
+    "analyzedAt": "2026-09-25T00:00:00Z",
+    "duration": 42016,
+    "agentVersions": {
+      "code-quality-analyzer": "not-executed",
+      "test-coverage-analyzer": "not-executed",
+      "refactoring-suggester": "not-executed"
+    }
+  }
+}

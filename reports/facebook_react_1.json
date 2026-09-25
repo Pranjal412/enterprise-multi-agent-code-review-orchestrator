@@ -1,0 +1,415 @@
+{
+  "pullRequest": {
+    "owner": "facebook",
+    "repo": "react",
+    "number": 1
+  },
+  "fileReviews": [
+    {
+      "file": "test/phantom-harness.js",
+      "codeQuality": {
+        "file": "test/phantom-harness.js",
+        "issues": [
+          {
+            "line": 50,
+            "severity": "critical",
+            "category": "security",
+            "description": "Dynamic iframe injection from command-line arguments without sanitization. The code creates iframes with test attributes from --tests arguments that are not validated, potentially allowing XSS attacks if malicious test names are provided.",
+            "suggestion": "Sanitize test file paths before setting as iframe attributes. Use a whitelist approach to validate test names against actual test files, and encode HTML attributes properly."
+          },
+          {
+            "line": 60,
+            "severity": "high",
+            "category": "bug-risk",
+            "description": "File serving logic changed to serve jasmine.js from '../build/' instead of '../vendor/jasmine/' but no verification that build files exist before serving. This could cause runtime failures.",
+            "suggestion": "Add file existence checks before serving: if (fs.existsSync(jasmineFilePath)) { ... } else { res.status(404).send('File not found'); } or ensure build process completes before tests run."
+          },
+          {
+            "line": 40,
+            "severity": "medium",
+            "category": "performance",
+            "description": "Creates one iframe per test file, potentially causing DOM performance issues with many tests. Each iframe loads the full test environment independently.",
+            "suggestion": "Consider batching tests or implementing lazy iframe creation. Alternatively, use iframe pooling to reuse iframes for sequential tests."
+          },
+          {
+            "line": 30,
+            "severity": "medium",
+            "category": "performance",
+            "description": "The indexHtml variable caches index.html content but is defined in scope where it could be re-read on each request if not properly scoped at module level.",
+            "suggestion": "Ensure indexHtml is cached at module scope, not function scope: let cachedIndexHtml = null; function getIndexHtml() { if (!cachedIndexHtml) cachedIndexHtml = fs.readFileSync(...); return cachedIndexHtml; }"
+          }
+        ],
+        "overallScore": 58,
+        "summary": "Critical security vulnerability in iframe injection. High risk from missing file existence checks. Performance concerns with multiple iframe creation. Requires immediate security fixes before merge."
+      },
+      "testCoverage": {
+        "file": "test/phantom-harness.js",
+        "hasTests": false,
+        "testFiles": [],
+        "untestedPaths": [
+          {
+            "type": "function",
+            "location": "test/phantom-harness.js - iframe generation loop (lines ~50-60)",
+            "priority": "critical",
+            "reasoning": "This is the core functionality that generates iframes for each test file. If this fails, the entire test isolation mechanism breaks. No tests verify that iframes are created correctly, have proper attributes, or load the right test modules.",
+            "suggestedTest": "Test 'should create one iframe per test file with correct src and test attribute' - Mock the test file list, run the iframe generation logic, verify DOM contains N iframes with src='frame.html' and test attribute matching each test filename without .js extension"
+          },
+          {
+            "type": "function",
+            "location": "test/phantom-harness.js - --tests argument parsing",
+            "priority": "high",
+            "reasoning": "Command-line argument parsing is error-prone. If the --tests argument is malformed, missing, or contains invalid patterns, tests could silently fail to run or run incorrect files.",
+            "suggestedTest": "Test 'should parse --tests argument correctly and expand glob patterns' - Verify that passing '--tests' followed by test patterns correctly populates the tests array, handles multiple patterns, and rejects invalid input"
+          },
+          {
+            "type": "function",
+            "location": "test/phantom-harness.js - route handler for frame.html",
+            "priority": "high",
+            "reasoning": "The new route serving frame.html is critical infrastructure. If this fails, iframes won't load properly and all tests will fail silently.",
+            "suggestedTest": "Test 'should serve frame.html when requested' - Make HTTP request to /frame.html, verify response is 200, content-type is text/html, and body contains expected iframe setup code"
+          }
+        ],
+        "coverageEstimate": 10,
+        "summary": "Critical infrastructure code with zero test coverage. Iframe generation, argument parsing, and route handling are completely untested. Estimated coverage: 10% from indirect integration tests only."
+      },
+      "refactorings": {
+        "file": "test/phantom-harness.js",
+        "suggestions": [
+          {
+            "type": "extract-function",
+            "location": "test/phantom-harness.js - iframe generation logic",
+            "impact": "high",
+            "description": "Extract iframe creation into dedicated function with clear input/output for better testability and maintainability.",
+            "before": "tests.forEach(function(test) {\n  var iframe = document.createElement('iframe');\n  iframe.src = 'frame.html';\n  iframe.setAttribute('test', test);\n  document.body.appendChild(iframe);\n});",
+            "after": "function createTestIframe(testModuleName) {\n  const iframe = document.createElement('iframe');\n  iframe.src = 'frame.html';\n  iframe.setAttribute('test', testModuleName);\n  return iframe;\n}\n\nfunction initializeTestIframes(testModuleNames, container) {\n  testModuleNames.forEach(name => {\n    container.appendChild(createTestIframe(name));\n  });\n}",
+            "benefits": "Single responsibility, easier to test iframe creation independently, centralized styling logic, reusable iframe creation function."
+          },
+          {
+            "type": "pattern-improvement",
+            "location": "test/phantom-harness.js - route handling",
+            "impact": "high",
+            "description": "Organize route handling into proper structure with centralized configuration and caching strategy.",
+            "before": "if (requestPath === '/jasmine.js') {\n  serveFile('../build/jasmine.js');\n}",
+            "after": "const ROUTE_CONFIG = {\n  '/jasmine.js': { path: '../build/jasmine.js', cache: true }\n};\n\nclass TestServerRouter {\n  handleRequest(requestPath, response) {\n    const config = ROUTE_CONFIG[requestPath];\n    if (!config) { response.writeHead(404); return; }\n    response.write(this.getContent(config));\n  }\n}",
+            "benefits": "Centralized route configuration, explicit caching strategy, easier to add routes, proper error handling."
+          }
+        ],
+        "summary": "High-impact refactoring opportunities in iframe generation and route handling. Extracting these into well-defined functions would significantly improve testability."
+      }
+    },
+    {
+      "file": "test/frame.html",
+      "codeQuality": {
+        "file": "test/frame.html",
+        "issues": [
+          {
+            "line": 5,
+            "severity": "high",
+            "category": "security",
+            "description": "Accessing parent window context without origin validation creates a security vulnerability. Any parent page could potentially inject malicious jasmine/console objects.",
+            "suggestion": "Add same-origin policy checks before accessing parent window or use postMessage for cross-frame communication."
+          },
+          {
+            "line": 14,
+            "severity": "medium",
+            "category": "bug-risk",
+            "description": "Uses require(window.frameElement.getAttribute('test')) without error handling. If attribute is missing or module doesn't exist, test fails silently.",
+            "suggestion": "Add error handling: try { const testModule = window.frameElement.getAttribute('test'); if (!testModule) throw new Error('test attribute missing'); require(testModule); } catch(e) { console.error('Failed to load test:', e); }"
+          }
+        ],
+        "overallScore": 55,
+        "summary": "High security risk from missing origin validation. Bug risk from missing error handling in dynamic module loading."
+      },
+      "testCoverage": {
+        "file": "test/frame.html",
+        "hasTests": false,
+        "testFiles": [],
+        "untestedPaths": [
+          {
+            "type": "function",
+            "location": "test/frame.html - jasmine global exposure",
+            "priority": "critical",
+            "reasoning": "frame.html uses jasmine.exposeFrom(window) to expose jasmine globals. If this fails or exposes the wrong context, tests won't have access to describe/it/expect, causing all tests to fail.",
+            "suggestedTest": "Test 'frame.html should expose jasmine globals correctly' - Load frame.html in an iframe, verify that describe, it, expect, beforeEach, afterEach are defined in the frame context"
+          },
+          {
+            "type": "function",
+            "location": "test/frame.html - dynamic test module loading",
+            "priority": "critical",
+            "reasoning": "Each iframe loads its test module by reading the 'test' attribute from frameElement. If the attribute is missing, malformed, or the require fails, that test module won't run.",
+            "suggestedTest": "Test 'should load test module based on frameElement test attribute' - Create iframe with test='path/to/test', verify require is called with correct module path"
+          }
+        ],
+        "coverageEstimate": 0,
+        "summary": "Zero test coverage for critical iframe test loading mechanism. High risk for silent test failures."
+      },
+      "refactorings": {
+        "file": "test/frame.html",
+        "suggestions": [
+          {
+            "type": "simplify",
+            "location": "test/frame.html - parent window access",
+            "impact": "medium",
+            "description": "Add validation and error handling for parent window access.",
+            "before": "jasmine = parent.jasmine;\njasmine.exposeFrom(window);",
+            "after": "function initializeFrameEnvironment() {\n  if (!parent || parent === window) {\n    throw new Error('frame.html must be loaded in an iframe');\n  }\n  if (!parent.jasmine) {\n    throw new Error('Parent window missing jasmine');\n  }\n  jasmine = parent.jasmine;\n  jasmine.exposeFrom(window);\n}\ninitializeFrameEnvironment();",
+            "benefits": "Fail-fast validation, clear error messages, easier debugging, prevents silent failures."
+          }
+        ],
+        "summary": "Moderate refactoring opportunity to add validation and error handling."
+      }
+    },
+    {
+      "file": "src/test/all.js",
+      "codeQuality": {
+        "file": "src/test/all.js",
+        "issues": [
+          {
+            "line": 10,
+            "severity": "high",
+            "category": "bug-risk",
+            "description": "Function.prototype.bind polyfill handles constructor binding but doesn't validate all edge cases for 'new' operator and null/undefined prototypes.",
+            "suggestion": "Add comprehensive validation and ensure prototype assignment handles null/undefined safely with Object.create checks."
+          }
+        ],
+        "overallScore": 70,
+        "summary": "Function.prototype.bind polyfill is well-structured but needs edge case validation."
+      },
+      "testCoverage": {
+        "file": "src/test/all.js",
+        "hasTests": false,
+        "testFiles": [],
+        "untestedPaths": [
+          {
+            "type": "function",
+            "location": "src/test/all.js - Function.prototype.bind polyfill",
+            "priority": "critical",
+            "reasoning": "This polyfill is essential for PhantomJS compatibility. If it's broken, any code using .bind() will fail in PhantomJS.",
+            "suggestedTest": "Test 'bind polyfill should work with constructors' - Create a constructor function, bind it with arguments, use 'new' on bound function, verify instance has correct prototype chain"
+          },
+          {
+            "type": "edge-case",
+            "location": "src/test/all.js - bind polyfill with null/undefined context",
+            "priority": "high",
+            "reasoning": "The bind spec requires that binding with null/undefined context should use global object. If polyfill doesn't handle this, it could break existing tests.",
+            "suggestedTest": "Test 'bind polyfill should handle null/undefined thisArg correctly' - Bind function with null and undefined, verify 'this' is global object"
+          }
+        ],
+        "coverageEstimate": 0,
+        "summary": "Zero test coverage for critical polyfill. High risk for PhantomJS test failures."
+      },
+      "refactorings": {
+        "file": "src/test/all.js",
+        "suggestions": [
+          {
+            "type": "extract-function",
+            "location": "src/test/all.js - bind polyfill",
+            "impact": "high",
+            "description": "Extract Function.prototype.bind polyfill into separate module for better reusability.",
+            "before": "if (!Fp.bind) {\n  Fp.bind = function(context) {\n    // 40+ lines of polyfill\n  };\n}\nrequire('ReactTestUtils');",
+            "after": "import { installFunctionBindPolyfill } from '../polyfills/function-bind';\ninstallFunctionBindPolyfill();\nrequire('ReactTestUtils');",
+            "benefits": "Centralizes polyfill management, improves reusability, makes testing easier, clearer separation of concerns."
+          }
+        ],
+        "summary": "High-impact opportunity to extract bind polyfill into reusable module."
+      }
+    },
+    {
+      "file": "grunt/tasks/browserify.js",
+      "codeQuality": {
+        "file": "grunt/tasks/browserify.js",
+        "issues": [
+          {
+            "line": 26,
+            "severity": "medium",
+            "category": "maintainability",
+            "description": "Type checking for requires config handles Array vs Object but could fail silently with other types.",
+            "suggestion": "Add explicit type validation with error throwing for invalid configuration types."
+          }
+        ],
+        "overallScore": 68,
+        "summary": "Moderate maintainability issue with type checking. Needs explicit validation for invalid types."
+      },
+      "testCoverage": {
+        "file": "grunt/tasks/browserify.js",
+        "hasTests": false,
+        "testFiles": [],
+        "untestedPaths": [
+          {
+            "type": "function",
+            "location": "grunt/tasks/browserify.js - Array vs Object requires handling",
+            "priority": "high",
+            "reasoning": "The requires handling now supports both Array and Object types. If the type detection or handling logic is wrong, modules won't be required correctly and builds will fail.",
+            "suggestedTest": "Test 'should handle requires as Array with file expansion' - Pass requires as array, verify bundle.require is called with correct paths"
+          }
+        ],
+        "coverageEstimate": 20,
+        "summary": "Low test coverage for new Array vs Object requires handling. Type detection and path construction are untested."
+      },
+      "refactorings": {
+        "file": "grunt/tasks/browserify.js",
+        "suggestions": [
+          {
+            "type": "modernize",
+            "location": "grunt/tasks/browserify.js - requires handling",
+            "impact": "high",
+            "description": "Create explicit handler functions for type-safe requires processing.",
+            "before": "if (Array.isArray(config.requires)) {\n  // array handling\n} else {\n  // object handling\n}",
+            "after": "function processGlobRequires(requires, bundle) {\n  // array handling\n}\n\nfunction processExplicitRequires(requires, bundle) {\n  // object handling\n}\n\nif (Array.isArray(config.requires)) {\n  processGlobRequires(config.requires, bundle);\n} else if (typeof config.requires === 'object') {\n  processExplicitRequires(config.requires, bundle);\n} else {\n  grunt.fail.warn('Invalid requires configuration');\n}",
+            "benefits": "Clear separation of patterns, error handling for invalid configs, easier to test each type independently."
+          }
+        ],
+        "summary": "High-impact modernization opportunity with proper type validation."
+      }
+    },
+    {
+      "file": "grunt/tasks/jsx.js",
+      "codeQuality": {
+        "file": "grunt/tasks/jsx.js",
+        "issues": [
+          {
+            "line": 12,
+            "severity": "medium",
+            "category": "maintainability",
+            "description": "Configuration changed from hardcoded paths to config properties without fallback values. Missing config properties will cause undefined errors.",
+            "suggestion": "Provide default values: const sourceDir = config.sourceDir || 'src'; to maintain backward compatibility."
+          }
+        ],
+        "overallScore": 65,
+        "summary": "Moderate maintainability issue with missing default values for configuration."
+      },
+      "testCoverage": {
+        "file": "grunt/tasks/jsx.js",
+        "hasTests": false,
+        "testFiles": [],
+        "untestedPaths": [
+          {
+            "type": "function",
+            "location": "grunt/tasks/jsx.js - dynamic sourceDir/outputDir",
+            "priority": "high",
+            "reasoning": "Now reads from config properties. If these are undefined or invalid, jsx transformation will fail or write to wrong location.",
+            "suggestedTest": "Test 'should use sourceDir and outputDir from config' - Set config with custom values, verify jsx reads from sourceDir and writes to outputDir"
+          }
+        ],
+        "coverageEstimate": 25,
+        "summary": "Low test coverage for new dynamic directory configuration."
+      },
+      "refactorings": {
+        "file": "grunt/tasks/jsx.js",
+        "suggestions": [
+          {
+            "type": "pattern-improvement",
+            "location": "grunt/tasks/jsx.js - configuration",
+            "impact": "medium",
+            "description": "Implement configuration pattern with defaults and validation.",
+            "before": "var sourceDir = config.sourceDir;\nvar outputDir = config.outputDir;",
+            "after": "const JSX_DEFAULTS = {\n  sourceDir: 'src',\n  outputDir: 'build/modules'\n};\n\nfunction normalizeJsxConfig(config) {\n  return {\n    sourceDir: config.sourceDir || JSX_DEFAULTS.sourceDir,\n    outputDir: config.outputDir || JSX_DEFAULTS.outputDir\n  };\n}",
+            "benefits": "Default values make config optional, fail-fast validation, consistent pattern across tasks."
+          }
+        ],
+        "summary": "Medium-impact opportunity to improve configuration handling."
+      }
+    }
+  ],
+  "summary": {
+    "totalFiles": 13,
+    "overallScore": 65,
+    "criticalIssues": 3,
+    "highPriorityTests": 12,
+    "refactoringOpportunities": 8
+  },
+  "recommendations": [
+    {
+      "priority": "critical",
+      "category": "Security",
+      "description": "Fix XSS vulnerability in test/phantom-harness.js - Dynamic iframe injection from command-line arguments without sanitization allows potential XSS attacks. Implement whitelist validation and proper HTML attribute encoding before setting test attributes on iframes.",
+      "files": [
+        "test/phantom-harness.js"
+      ]
+    },
+    {
+      "priority": "critical",
+      "category": "Security",
+      "description": "Add origin validation in test/frame.html - Parent window access without origin checks creates security vulnerability. Implement same-origin policy checks or use secure postMessage communication to prevent malicious parent frames from injecting code.",
+      "files": [
+        "test/frame.html"
+      ]
+    },
+    {
+      "priority": "critical",
+      "category": "Testing",
+      "description": "Add comprehensive tests for iframe test isolation infrastructure - Zero test coverage for critical test infrastructure including iframe generation, test module loading, and Function.prototype.bind polyfill. These components are the foundation of the entire test suite and must be thoroughly tested.",
+      "files": [
+        "test/phantom-harness.js",
+        "test/frame.html",
+        "src/test/all.js"
+      ]
+    },
+    {
+      "priority": "high",
+      "category": "Reliability",
+      "description": "Add file existence checks before serving built files - File serving logic changed to serve jasmine.js from ../build/ without verifying files exist. This could cause runtime failures. Add existence checks or ensure build process completes before tests run.",
+      "files": [
+        "test/phantom-harness.js"
+      ]
+    },
+    {
+      "priority": "high",
+      "category": "Error Handling",
+      "description": "Add error handling for dynamic test module loading - frame.html uses require(window.frameElement.getAttribute('test')) without error handling. Add try-catch blocks with meaningful error messages for missing attributes or failed requires.",
+      "files": [
+        "test/frame.html"
+      ]
+    },
+    {
+      "priority": "high",
+      "category": "Code Quality",
+      "description": "Add edge case validation to Function.prototype.bind polyfill - The polyfill needs comprehensive validation for constructor binding, null/undefined contexts, and prototype handling. This affects all PhantomJS test execution.",
+      "files": [
+        "src/test/all.js"
+      ]
+    },
+    {
+      "priority": "medium",
+      "category": "Configuration",
+      "description": "Add default values and validation for Grunt task configurations - jsx.js and browserify.js now use dynamic config properties without defaults or validation. Provide fallback values and validate configuration to prevent undefined errors.",
+      "files": [
+        "grunt/tasks/jsx.js",
+        "grunt/tasks/browserify.js"
+      ]
+    },
+    {
+      "priority": "medium",
+      "category": "Performance",
+      "description": "Consider iframe pooling or lazy loading strategy - Creating one iframe per test file could cause DOM performance issues with large test suites. Implement batching, lazy loading, or iframe reuse to optimize resource usage.",
+      "files": [
+        "test/phantom-harness.js"
+      ]
+    },
+    {
+      "priority": "low",
+      "category": "Maintainability",
+      "description": "Extract Function.prototype.bind polyfill into separate module - The 40+ line polyfill embedded in src/test/all.js should be extracted into a dedicated polyfill module for better reusability, testability, and separation of concerns.",
+      "files": [
+        "src/test/all.js"
+      ]
+    },
+    {
+      "priority": "low",
+      "category": "Best Practices",
+      "description": "Replace PhantomJS test skipping with framework-level mechanisms - Instead of 'if (window.callPhantom) return;' early returns, use proper test.skip() with environment detection for better test reporting and framework integration.",
+      "files": [
+        "src/utils/__tests__/ImmutableObject-test.js"
+      ]
+    }
+  ],
+  "metadata": {
+    "analyzedAt": "2026-09-25T12:00:00Z",
+    "duration": 45000,
+    "agentVersions": {
+      "code-quality-analyzer": "a97cc6d",
+      "test-coverage-analyzer": "a684113",
+      "refactoring-suggester": "a40b3b5"
+    }
+  }
+}

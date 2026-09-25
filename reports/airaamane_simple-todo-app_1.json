@@ -1,0 +1,45 @@
+{
+  "pullRequest": {
+    "owner": "airaamane",
+    "repo": "simple-todo-app",
+    "number": 1
+  },
+  "fileReviews": [],
+  "summary": {
+    "totalFiles": 0,
+    "overallScore": 0,
+    "criticalIssues": 0,
+    "highPriorityTests": 0,
+    "refactoringOpportunities": 0
+  },
+  "recommendations": [
+    {
+      "priority": "critical",
+      "category": "Access",
+      "description": "Unable to access the repository 'airaamane/simple-todo-app'. The repository either does not exist, is private without proper access permissions, or the owner/repository name is incorrect. Please verify: (1) The repository exists at github.com/airaamane/simple-todo-app, (2) The repository is public or you have granted access, (3) The owner name 'airaamane' and repository name 'simple-todo-app' are spelled correctly.",
+      "files": []
+    },
+    {
+      "priority": "high",
+      "category": "Authentication",
+      "description": "Verify that the GitHub authentication token has the necessary permissions to access the repository. For private repositories, ensure the token has 'repo' scope. For public repositories, ensure the repository exists and is accessible.",
+      "files": []
+    },
+    {
+      "priority": "medium",
+      "category": "Verification",
+      "description": "Attempted to search for the repository using GitHub search API but found no matching repositories. Consider checking if the repository URL is correct or if there are any typos in the owner or repository name.",
+      "files": []
+    }
+  ],
+  "metadata": {
+    "analyzedAt": "2026-09-24T00:00:00Z",
+    "duration": 39646,
+    "agentVersions": {
+      "orchestrator": "1.0.0",
+      "code-quality-analyzer": "not-executed",
+      "test-coverage-analyzer": "not-executed",
+      "refactoring-suggester": "not-executed"
+    }
+  }
+}
