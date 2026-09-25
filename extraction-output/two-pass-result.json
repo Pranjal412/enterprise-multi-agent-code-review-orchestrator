@@ -1,0 +1,26 @@
+{
+  "document_id": "evidence-pr-42",
+  "document_type": "github_pull_request",
+  "first_pass": {
+    "document_id": "evidence-pr-42",
+    "document_type": "github_pull_request",
+    "files_modified": 5,
+    "lines_added": 100,
+    "lines_deleted": 25,
+    "total_changes": 125,
+    "security_notes": "No security issues identified."
+  },
+  "second_pass": {
+    "document_id": "evidence-pr-42",
+    "document_type": "github_pull_request",
+    "files_modified": 5,
+    "lines_added": 100,
+    "lines_deleted": 25,
+    "total_changes": 125,
+    "security_notes": "No security issues identified."
+  },
+  "validation": {
+    "passed": true,
+    "discrepancies": []
+  }
+}

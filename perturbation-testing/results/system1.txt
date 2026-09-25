@@ -1,0 +1,4 @@
+baseline: valid=True, attempts=1, errors=[]
+missing_owner: valid=False, attempts=1, errors=['owner must be a non-empty string']
+invalid_pr_number: valid=False, attempts=1, errors=['pr_number must be greater than zero']
+empty_repo: valid=False, attempts=1, errors=['repo must be a non-empty string']

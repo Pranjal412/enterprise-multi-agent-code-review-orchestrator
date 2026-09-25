@@ -1,0 +1,35 @@
+{
+  "conflicts": [
+    {
+      "field": "status",
+      "values": {
+        "ci": "merged",
+        "github": "open"
+      }
+    }
+  ],
+  "merged": {
+    "changed_files": 5,
+    "pr_number": 42,
+    "status": "open",
+    "tests_passed": 18
+  },
+  "provenance": {
+    "changed_files": [
+      "github"
+    ],
+    "pr_number": [
+      "github"
+    ],
+    "status": [
+      "github",
+      "ci"
+    ],
+    "tests_passed": [
+      "ci"
+    ]
+  },
+  "source_failures": {
+    "static_analysis": "Static analysis service unavailable"
+  }
+}
