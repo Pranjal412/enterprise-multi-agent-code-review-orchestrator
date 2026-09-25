@@ -1,0 +1,15 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.14, pytest-9.1.1, pluggy-1.6.0 -- /usr/bin/python3.10
+cachedir: .pytest_cache
+rootdir: /voc/work/cd14715-claude-code-classroom/project/starter
+plugins: anyio-4.10.0, langsmith-0.4.27, Faker-25.2.0, typeguard-4.3.0
+collecting ... collected 6 items
+
+rubric_systems/system_2_routing/test_router.py::test_valid_item_is_accepted PASSED [ 16%]
+rubric_systems/system_2_routing/test_router.py::test_failed_validation_routes_to_retry_when_budget_remains PASSED [ 33%]
+rubric_systems/system_2_routing/test_router.py::test_exhausted_retry_budget_routes_to_human_review PASSED [ 50%]
+rubric_systems/system_2_routing/test_router.py::test_batch_processing_counts_each_route PASSED [ 66%]
+rubric_systems/system_2_routing/test_router.py::test_batch_order_is_deterministic PASSED [ 83%]
+rubric_systems/system_2_routing/test_router.py::test_negative_retry_configuration_is_rejected PASSED [100%]
+
+============================== 6 passed in 0.17s ===============================

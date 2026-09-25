@@ -1,0 +1,17 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.14, pytest-9.1.1, pluggy-1.6.0 -- /usr/bin/python3.10
+cachedir: .pytest_cache
+rootdir: /voc/work/cd14715-claude-code-classroom/project/starter
+plugins: anyio-4.10.0, langsmith-0.4.27, Faker-25.2.0, typeguard-4.3.0
+collecting ... collected 8 items
+
+rubric_systems/system_3_extraction/test_extractor.py::test_github_pull_request_is_classified PASSED [ 12%]
+rubric_systems/system_3_extraction/test_extractor.py::test_structured_fields_are_extracted PASSED [ 25%]
+rubric_systems/system_3_extraction/test_extractor.py::test_missing_optional_fields_remain_none PASSED [ 37%]
+rubric_systems/system_3_extraction/test_extractor.py::test_consistency_validation_passes_when_sum_matches PASSED [ 50%]
+rubric_systems/system_3_extraction/test_extractor.py::test_consistency_validation_detects_discrepancy PASSED [ 62%]
+rubric_systems/system_3_extraction/test_extractor.py::test_two_pass_extraction_contains_both_passes PASSED [ 75%]
+rubric_systems/system_3_extraction/test_extractor.py::test_two_pass_extraction_surfaces_inconsistency PASSED [ 87%]
+rubric_systems/system_3_extraction/test_extractor.py::test_invalid_integer_field_is_rejected PASSED [100%]
+
+============================== 8 passed in 0.19s ===============================

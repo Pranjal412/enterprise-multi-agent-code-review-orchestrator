@@ -1,0 +1,13 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.14, pytest-9.1.1, pluggy-1.6.0 -- /usr/bin/python3.10
+cachedir: .pytest_cache
+rootdir: /voc/work/cd14715-claude-code-classroom/project/starter
+plugins: anyio-4.10.0, langsmith-0.4.27, Faker-25.2.0, typeguard-4.3.0
+collecting ... collected 4 items
+
+rubric_systems/multi_source_synthesis/test_synthesizer.py::test_multiple_sources_merge_with_provenance PASSED [ 25%]
+rubric_systems/multi_source_synthesis/test_synthesizer.py::test_conflicting_sources_are_recorded PASSED [ 50%]
+rubric_systems/multi_source_synthesis/test_synthesizer.py::test_failed_source_is_preserved_without_blocking_synthesis PASSED [ 75%]
+rubric_systems/multi_source_synthesis/test_synthesizer.py::test_empty_sources_are_deterministic PASSED [100%]
+
+============================== 4 passed in 0.17s ===============================

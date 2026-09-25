@@ -1,0 +1,6 @@
+baseline_valid: route=accept, reason=validation passed, attempts=1
+validation_failure_with_budget: route=retry, reason=validation failed and retry budget remains, attempts=1
+validation_failure_exhausted: route=human_review, reason=validation failed and retry budget is exhausted, attempts=2
+baseline_batch=accepted=1, retried=1, human_review=1, rejected=0
+reversed_batch=accepted=1, retried=1, human_review=1, rejected=0
+same_route_counts_after_reordering=True

@@ -1,0 +1,4 @@
+baseline: extracted=ExtractionResult(document_id='baseline', document_type='unknown', files_modified=None, lines_added=100, lines_deleted=25, total_changes=125, security_notes=None), pass1_valid=True, pass2_valid=True, discrepancies=[]
+missing_optional_title: extracted=ExtractionResult(document_id='missing_optional_title', document_type='unknown', files_modified=None, lines_added=100, lines_deleted=25, total_changes=125, security_notes=None), pass1_valid=True, pass2_valid=True, discrepancies=[]
+inconsistent_total: extracted=ExtractionResult(document_id='inconsistent_total', document_type='unknown', files_modified=None, lines_added=100, lines_deleted=25, total_changes=130, security_notes=None), pass1_valid=False, pass2_valid=False, discrepancies=[ConsistencyDiscrepancy(field_name='total_changes', expected_from_sum=125.0, extracted_value=130.0, variance=5.0, severity='MEDIUM')]
+invalid_integer: rejected=ValueError: expected an integer or null
