@@ -5,15 +5,15 @@ import {
   codeQualityAnalyzer,
   testCoverageAnalyzer,
   refactoringSuggester
-} from './agents';
+} from './agents/index.js';
 
-import { mcpServersConfig } from './config/mcp.config';
-import { buildOrchestratorPrompt } from './prompts';
+import { mcpServersConfig } from './config/mcp.config.js';
+import { buildOrchestratorPrompt } from './prompts/index.js';
 import {
   ReviewReportSchema,
   ReviewReportJSONSchema,
   type ReviewReport
-} from './types';
+} from './types/index.js';
 
 /**
  * Orchestrator configuration options.

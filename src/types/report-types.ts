@@ -4,7 +4,7 @@ import {
   CodeQualityResultSchema,
   TestCoverageResultSchema,
   RefactoringSuggestionSchema
-} from './analysis-results';
+} from './analysis-results.js';
 
 /**
  * Complete Review Report Schema
@@ -38,7 +38,7 @@ export const ReviewReportSchema = z.object({
   metadata: z.object({
     analyzedAt: z.string(),
     duration: z.number(),
-    agentVersions: z.record(z.string())
+    agentVersions: z.record(z.string(), z.string())
   })
 });
 

@@ -2,9 +2,9 @@ import * as dotenv from 'dotenv';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
-import { CodeReviewOrchestrator } from './orchestrator';
-import { ReportGenerator } from './utils/report-generator';
-import { formatError, ReviewError, ErrorCodes } from './utils/error-handler';
+import { CodeReviewOrchestrator } from './orchestrator.js';
+import { ReportGenerator } from './utils/report-generator.js';
+import { formatError, ReviewError, ErrorCodes } from './utils/error-handler.js';
 
 // Load environment variables.
 dotenv.config();

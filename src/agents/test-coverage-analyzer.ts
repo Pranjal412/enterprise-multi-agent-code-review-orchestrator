@@ -1,5 +1,5 @@
 import type { AgentDefinition } from '@anthropic-ai/claude-agent-sdk';
-import { TEST_COVERAGE_ANALYZER_PROMPT } from '../prompts';
+import { TEST_COVERAGE_ANALYZER_PROMPT } from '../prompts/index.js';
 
 export const testCoverageAnalyzer: AgentDefinition = {
   description:
